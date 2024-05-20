@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Leaderboard with Animations</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+        }
+        .leaderboard {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            width: 300px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .leaderboard h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .leaderboard ul {
+            list-style: none;
+            padding: 0;
+        }
+        .leaderboard li {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            transition: background-color 0.5s, transform 0.5s;
+        }
+        .leaderboard li.rank-up {
+            background-color: #d4edda;
+            transform: translateY(-10px);
+        }
+        .leaderboard li.rank-down {
+            background-color: #f8d7da;
+            transform: translateY(10px);
+        }
+        .leaderboard li:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="leaderboard">
+        <h2>Live Leaderboard</h2>
+        <ul id="leaderboard-list">
+            <!-- Leaderboard items will be injected here -->
+        </ul>
+    </div>
+
+    <script>
+        const sheetUrl = 'YOUR_CSV_URL_HERE'; // Replace with your Google Sheet CSV URL
+
+        let previousData = [];
+
+        const fetchData = async () => {
+            try {
+                const response = await fetch(sheetUrl);
+                const data = await response.text();
+                return data.split('\n').slice(1).map(row => {
+                    const [name, score] = row.split(',');
+                    return { name: name.trim(), score: parseInt(score.trim()) };
+                }).filter(item => item.name && !isNaN(item.score));
+            } catch (error) {
+                console.error('Error fetching leaderboard data:', error);
+                return [];
+            }
+        };
+
+        const updateLeaderboard = async () => {
+            const data = await fetchData();
+            const leaderboardList = document.getElementById('leaderboard-list');
+            leaderboardList.innerHTML = '';
+
+            data.forEach((player, index) => {
+                const listItem = document.createElement('li');
+                listItem.textContent = `${player.name}: ${player.score}`;
+
+                // Determine if the player has moved up or down in the ranking
+                const previousIndex = previousData.findIndex(p => p.name === player.name);
+                if (previousIndex !== -1) {
+                    if (previousIndex > index) {
+                        listItem.classList.add('rank-up');
+                    } else if (previousIndex < index) {
+                        listItem.classList.add('rank-down');
+                    }
+                }
+
+                leaderboardList.appendChild(listItem);
+            });
+
+            // Save the current data for comparison in the next update
+            previousData = data;
+        };
+
+        setInterval(updateLeaderboard, 1000); // Update every second
+
+        // Initial load
+        updateLeaderboard();
+    </script>
+</body>
+</html>

@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live Leaderboard</title>
     <style>
-       .leaderboard {
+      .leaderboard {
             font-family: Arial, sans-serif;
-            max-width: 600 px;
+            max-width: 800px; /* Increase the max-width if needed */
             margin: 0 auto;
         }
         .leaderboard h2 {
@@ -16,16 +16,25 @@
         .leaderboard-item {
             display: flex;
             justify-content: space-between;
-            padding: 1000 px; /* Adjust the padding here */
-            border-bottom: 1 px solid #ccc;
+            padding: 15px; /* Adjust the padding here */
+            border-bottom: 1px solid #ccc;
         }
         .leaderboard-item .name,
-        .leaderboard-item . section,
+        .leaderboard-item .section,
         .leaderboard-item .pts,
         .leaderboard-item .exp,
         .leaderboard-item .rank {
             flex: 1;
             text-align: center;
+        }
+        .leaderboard-item .name,
+        .leaderboard-item .section {
+            flex-basis: 20%; /* Set a fixed width for NAME and SECTION */
+        }
+        .leaderboard-item .pts,
+        .leaderboard-item .exp,
+        .leaderboard-item .rank {
+            flex-basis: 15%; /* Set a fixed width for other columns */
         }
     </style>
 </head>

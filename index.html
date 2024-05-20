@@ -3,48 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Leaderboard with Animations</title>
+    <title>Live Leaderboard</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f4f4f4;
-            margin: 0;
-        }
         .leaderboard {
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            padding: 20px;
-            width: 300px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
         }
         .leaderboard h2 {
             text-align: center;
-            margin-bottom: 20px;
         }
-        .leaderboard ul {
-            list-style: none;
-            padding: 0;
-        }
-        .leaderboard li {
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
             padding: 10px;
-            border-bottom: 1px solid #ddd;
-            transition: background-color 0.5s, transform 0.5s;
+            border-bottom: 1px solid #ccc;
         }
-        .leaderboard li.rank-up {
-            background-color: #d4edda;
-            transform: translateY(-10px);
-        }
-        .leaderboard li.rank-down {
-            background-color: #f8d7da;
-            transform: translateY(10px);
-        }
-        .leaderboard li:last-child {
-            border-bottom: none;
+        .leaderboard-item .name,
+        .leaderboard-item .section,
+        .leaderboard-item .pts,
+        .leaderboard-item .exp,
+        .leaderboard-item .rank {
+            flex: 1;
+            text-align: center;
         }
     </style>
 </head>
@@ -57,54 +38,41 @@
     </div>
 
     <script>
-        const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTPtD4E9_BHkMHHbnZOE6eeM1iI6LTgBjbiR_gkt2n2yUv17INhm8hIbCVAEDumD9n5r7nzXFV8qRrA/pub?output=csv'; // Replace with your Google Sheet CSV URL
+        // Function to fetch data from CSV file
+        async function fetchData() {
+            const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vTPtD4E9_BHkMHHbnZOE6eeM1iI6LTgBjbiR_gkt2n2yUv17INhm8hIbCVAEDumD9n5r7nzXFV8qRrA/pub?output=csv'); // Replace 'your_csv_file.csv' with your CSV file URL
+            const data = await response.text();
+            return data;
+        }
 
-        let previousData = [];
-
-        const fetchData = async () => {
-            try {
-                const response = await fetch(sheetUrl);
-                const data = await response.text();
-                return data.split('\n').slice(1).map(row => {
-                    const [name, score] = row.split(',');
-                    return { name: name.trim(), score: parseInt(score.trim()) };
-                }).filter(item => item.name && !isNaN(item.score));
-            } catch (error) {
-                console.error('Error fetching leaderboard data:', error);
-                return [];
-            }
-        };
-
-        const updateLeaderboard = async () => {
-            const data = await fetchData();
+        // Function to parse CSV data and populate leaderboard
+        async function populateLeaderboard() {
+            const csvData = await fetchData();
+            const lines = csvData.split('\n');
             const leaderboardList = document.getElementById('leaderboard-list');
+
+            // Clear existing leaderboard items
             leaderboardList.innerHTML = '';
 
-            data.forEach((player, index) => {
+            // Populate leaderboard with data from CSV
+            lines.forEach((line, index) => {
+                const [name, section, pts, exp, rank] = line.split(',');
+                if (index === 0) return; // Skip header row
                 const listItem = document.createElement('li');
-                listItem.textContent = `${player.name}: ${player.score}`;
-
-                // Determine if the player has moved up or down in the ranking
-                const previousIndex = previousData.findIndex(p => p.name === player.name);
-                if (previousIndex !== -1) {
-                    if (previousIndex > index) {
-                        listItem.classList.add('rank-up');
-                    } else if (previousIndex < index) {
-                        listItem.classList.add('rank-down');
-                    }
-                }
-
+                listItem.classList.add('leaderboard-item');
+                listItem.innerHTML = `
+                    <div class="name">${name}</div>
+                    <div class="section">${section}</div>
+                    <div class="pts">${pts}</div>
+                    <div class="exp">${exp}</div>
+                    <div class="rank">${rank}</div>
+                `;
                 leaderboardList.appendChild(listItem);
             });
+        }
 
-            // Save the current data for comparison in the next update
-            previousData = data;
-        };
-
-        setInterval(updateLeaderboard, 1000); // Update every second
-
-        // Initial load
-        updateLeaderboard();
+        // Call the populateLeaderboard function when the page loads
+        window.onload = populateLeaderboard;
     </script>
 </body>
 </html>
